@@ -4,18 +4,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title, User
 
-from .permissions import AdminOnly
+from .mixins import GetPosDeleteViewSet
+from .permissions import AdminOnly, IsAdminUserOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, GetTokenSerializer,
                           NotAdminSerializer, ReviewSerializer,
-                          SignUpSerializer, TitleSerializer, UsersSerializer)
+                          SignUpSerializer, TitleSerializer,
+                          GetTitleSerializer, UsersSerializer)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -101,21 +102,31 @@ class APISignup(APIView):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    pagination_class = LimitOffsetPagination
+    permission_classes = [IsAdminUserOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'category')
+    filterset_fields = ('name', 'year', 'category',)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return GetTitleSerializer
+        return TitleSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class CategoryViewSet(GetPosDeleteViewSet):
     queryset = Category.objects.all()
+    filter_backends = (SearchFilter, )
+    search_fields = ('name', )
+    lookup_field = "slug"
+    permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = CategorySerializer
 
 
-class GenreViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class GenreViewSet(GetPosDeleteViewSet):
     queryset = Genre.objects.all()
+    filter_backends = (SearchFilter, )
+    search_fields = ('name', )
+    lookup_field = "slug"
+    permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = GenreSerializer
 
 
