@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from reviews.models import Comment, Review
+from reviews.models import Comment, Review, User
 
 
 class CommentSerializer(serializers.ModelSerializer):
