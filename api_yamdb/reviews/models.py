@@ -21,7 +21,7 @@ class Comment(models.Model):
 
 class Review(models.Model):
     title = models.TextField(verbose_name='заголовок')
-    text = models.TextField(verbose_name='text')
+    text = models.TextField(verbose_name='текст')
     author = models.CharField(max_length=30, verbose_name='автор')
     score = models.IntegerField(verbose_name='оценка')
     pub_date = models.DateTimeField(
@@ -30,3 +30,7 @@ class Review(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class Title(models.Model):
+    text = models.TextField(verbose_name='text')
