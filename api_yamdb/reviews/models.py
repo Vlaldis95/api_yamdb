@@ -1,6 +1,66 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .validators import validate_year
+from .validators import validate_username, validate_year
+
+USER = 'user'
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+
+ROLE_CHOICES = [
+    (USER, USER),
+    (ADMIN, ADMIN),
+    (MODERATOR, MODERATOR),
+]
+
+
+class User(AbstractUser):
+    username = models.CharField(
+        validators=(validate_username,),
+        max_length=150,
+        unique=True,
+        blank=False,
+        null=False
+    )
+    email = models.EmailField(
+        max_length=254,
+        unique=True,
+        blank=False,
+        null=False
+    )
+    role = models.CharField(
+        'роль',
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=USER,
+        blank=True
+    )
+    bio = models.TextField(
+        'биография',
+        blank=True,
+    )
+    confirmation_code = models.CharField(
+        'код подтверждения',
+        max_length=255,
+        null=True,
+        blank=False,
+        default='XXXX'
+    )
+
+    @property
+    def is_user(self):
+        return self.role == USER
+
+    @property
+    def is_admin(self):
+        return self.role == ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
+
+    def __str__(self):
+        return self.username
 
 
 class Genre(models.Model):
@@ -89,3 +149,32 @@ class TitleGenre(models.Model):
 
     def __str__(self):
         return f'{self.title} - {self.genre}'
+
+
+class Comment(models.Model):
+    text = models.TextField(verbose_name='текст')
+    author = models.CharField(max_length=30, verbose_name='автор')
+    pub_date = models.DateTimeField(
+        verbose_name='дата публикации', auto_now_add=True
+    )
+    review = models.ForeignKey('Review',
+                               on_delete=models.CASCADE,
+                               verbose_name='отзыв')
+
+    def __str__(self):
+        return self.text
+
+
+class Review(models.Model):
+    title = models.ForeignKey('Title',
+                              verbose_name='произведение',
+                              on_delete=models.CASCADE)
+    text = models.TextField(verbose_name='текст')
+    author = models.CharField(max_length=30, verbose_name='автор')
+    score = models.IntegerField(verbose_name='оценка')
+    pub_date = models.DateTimeField(
+        verbose_name='дата публикации', auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.text
