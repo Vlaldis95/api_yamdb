@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title, User
 
+from .filters import TitleFilter
 from .mixins import GetPosDeleteViewSet
 from .permissions import AdminOnly, IsAdminUserOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -104,7 +105,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = [IsAdminUserOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'category',)
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
