@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from .enums import UserRoles
 from .validators import validate_username, validate_year
+
 from .enums import UserRoles
 
 

@@ -8,11 +8,14 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.response import Response
 
+from .utils import send_confirmation_code
+
 from reviews.models import Category, Genre, Review, Title, User, Comment
 from .utils import send_confirmation_code
 from .filters import TitleFilter
 from .mixins import GetPosDeleteViewSet
-from .permissions import IsAdminUserOrReadOnly, IsSuperUserOrIsAdminOnly
+
+from .permissions import IsSuperUserOrIsAdminOnly, IsAdminUserOrReadOnly
 from .permissions import ReviewCommentPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
@@ -20,10 +23,8 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           UserCreateSerializer, UserGetTokenSerializer,
                           UserSerializer)
 
-
 class UserCreateViewSet(mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
-
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
     permission_classes = (permissions.AllowAny,)
@@ -183,4 +184,3 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('pk')
         author = Review.objects.get(pk=review_id).author
         serializer.save(author=author, title=title)
-
