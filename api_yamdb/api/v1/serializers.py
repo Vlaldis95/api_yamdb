@@ -5,6 +5,22 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email'
+        )
+
+    def validate(self, data):
+        if data.get('username') == 'me':
+            raise serializers.ValidationError(
+                'Использовать имя me запрещено'
+            )
+        return data
+
+
+class UserGetTokenSerializer(serializers.Serializer):
     """Сериализатор для создания объекта класса User."""
 
     class Meta:
@@ -25,7 +41,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 class UserGetTokenSerializer(serializers.Serializer):
     """Сериализатор для объекта класса User при получении токена JWT."""
-
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
         max_length=150,

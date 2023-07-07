@@ -7,15 +7,8 @@ from .models import Category, Comment, Genre, Review, Title, User
 class UserAdmin(admin.ModelAdmin):
     """Класс настройки раздела пользователей."""
 
-    list_display = (
-        'pk',
-        'username',
-        'email',
-        'first_name',
-        'last_name',
-        'bio',
-        'role'
-    )
+    list_display = ('pk', 'username', 'email', 'first_name', 'last_name',
+                    'bio', 'role')
     empty_value_display = 'значение отсутствует'
     list_editable = ('role',)
     list_filter = ('username',)
