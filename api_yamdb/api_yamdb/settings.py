@@ -1,18 +1,16 @@
+import os
 from datetime import timedelta
-from pathlib import Path
 
-from django.core.management.utils import get_random_secret_key
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-SECRET_KEY = get_random_secret_key()
-
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
+)
 
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,8 +22,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
-    'reviews',
-    'api', ]
+    'api.apps.ApiConfig',
+    'reviews.apps.ReviewsConfig',
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -39,7 +38,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'api_yamdb.urls'
 
-TEMPLATES_DIR = BASE_DIR / 'templates'
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -58,14 +57,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api_yamdb.wsgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -82,10 +79,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -93,26 +89,33 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
+CSV_FILES_DIR = os.path.join(BASE_DIR, 'static/data')
+
+AUTH_USER_MODEL = 'reviews.User'
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
     ],
-    'DEFAULT_PAGINATION_CLASS':
-        'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 4,
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-AUTH_USER_MODEL = 'reviews.User'
+
+LENGTH_TEXT = 15
+LIST_PER_PAGE = 10
+EMAIL_YAMDB = 'registration_YaMDb@yandex.ru'
