@@ -4,28 +4,37 @@ from rest_framework.exceptions import ParseError
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания объекта класса User."""
+
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name',
-            'last_name', 'bio', 'role')
+            'username', 'email'
+        )
+
+    def validate(self, data):
+        """Запрещает пользователям присваивать себе имя me
+        и использовать повторные username и email."""
+        if data.get('username') == 'me':
+            raise serializers.ValidationError(
+                'Использовать имя me запрещено'
+            )
+        return data
 
 
-class NotAdminSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name',
-            'last_name', 'bio', 'role')
-        read_only_fields = ('role',)
+class UserGetTokenSerializer(serializers.Serializer):
+    """Сериализатор для объекта класса User при получении токена JWT."""
 
-
-class GetTokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        required=True)
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+$',
+        max_length=150,
+        required=True
+    )
     confirmation_code = serializers.CharField(
-        required=True)
+        max_length=150,
+        required=True
+    )
 
     class Meta:
         model = User
@@ -35,18 +44,36 @@ class GetTokenSerializer(serializers.ModelSerializer):
         )
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели User."""
 
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
+
+    def validate_username(self, username):
+        if username in 'me':
+            raise serializers.ValidationError(
+                'Использовать имя me запрещено'
+            )
+        return username
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ('name', 'slug')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -60,7 +87,15 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category',
+        )
 
     def get_rating(self, obj):
         reviews = Review.objects.filter(title_id=obj.id)
@@ -70,11 +105,21 @@ class TitleSerializer(serializers.ModelSerializer):
         return sum(scores) / len(scores)
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class GetTitleSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
-        model = Category
-        exclude = ('id', )
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category',
+        )
 
 
 class CommentSerializer(serializers.ModelSerializer):
