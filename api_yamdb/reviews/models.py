@@ -78,6 +78,7 @@ class Genre(models.Model):
 
     class Meta:
         verbose_name = "Жанр"
+        ordering = ['name']
 
 
 class Category(models.Model):
@@ -95,12 +96,13 @@ class Category(models.Model):
 
     class Meta:
         verbose_name = "Категория"
+        ordering = ['name']
 
 
 class Title(models.Model):
     name = models.CharField(
         verbose_name="Название произвидения",
-        max_length=200,
+        max_length=256,
     )
     year = models.IntegerField(
         verbose_name="Год создания",
@@ -130,6 +132,7 @@ class Title(models.Model):
 
     class Meta:
         verbose_name = "Произведение"
+        ordering = ['name']
 
 
 class TitleGenre(models.Model):

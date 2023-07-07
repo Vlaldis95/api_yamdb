@@ -11,11 +11,15 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title, User, Comment
 
+from .filters import TitleFilter
+from .mixins import GetPosDeleteViewSet
+from .permissions import AdminOnly, IsAdminUserOrReadOnly
 from .permissions import AdminOnly, ReviewCommentPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, GetTokenSerializer,
                           NotAdminSerializer, ReviewSerializer,
-                          SignUpSerializer, TitleSerializer, UsersSerializer)
+                          SignUpSerializer, TitleSerializer,
+                          GetTitleSerializer, UsersSerializer)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -101,21 +105,33 @@ class APISignup(APIView):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
+    permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'category')
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return GetTitleSerializer
+        return TitleSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class CategoryViewSet(GetPosDeleteViewSet):
     queryset = Category.objects.all()
+    filter_backends = (SearchFilter, )
+    search_fields = ('name', )
+    lookup_field = "slug"
+    permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = CategorySerializer
 
 
-class GenreViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class GenreViewSet(GetPosDeleteViewSet):
     queryset = Genre.objects.all()
+    filter_backends = (SearchFilter, )
+    search_fields = ('name', )
+    lookup_field = "slug"
+    permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = GenreSerializer
 
 
@@ -150,6 +166,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return reviews
 
     def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        serializer.save(author=self.request.user, title=title)
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
@@ -158,3 +177,4 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('pk')
         author = Review.objects.get(pk=review_id).author
         serializer.save(author=author, title=title)
+
