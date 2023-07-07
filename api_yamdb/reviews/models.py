@@ -1,66 +1,73 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from .enums import UserRoles
 from .validators import validate_username, validate_year
-
-USER = 'user'
-ADMIN = 'admin'
-MODERATOR = 'moderator'
-
-ROLE_CHOICES = [
-    (USER, USER),
-    (ADMIN, ADMIN),
-    (MODERATOR, MODERATOR),
-]
 
 
 class User(AbstractUser):
+    """Класс пользователей."""
+
     username = models.CharField(
-        validators=(validate_username,),
         max_length=150,
+        verbose_name='Имя пользователя',
         unique=True,
-        blank=False,
-        null=False
+        db_index=True,
+        validators=(validate_username,)
     )
     email = models.EmailField(
         max_length=254,
-        unique=True,
-        blank=False,
-        null=False
+        verbose_name='email',
+        unique=True
     )
-    role = models.CharField(
-        'роль',
-        max_length=20,
-        choices=ROLE_CHOICES,
-        default=USER,
+    first_name = models.CharField(
+        max_length=150,
+        verbose_name='имя',
+        blank=True
+    )
+    last_name = models.CharField(
+        max_length=150,
+        verbose_name='фамилия',
         blank=True
     )
     bio = models.TextField(
-        'биография',
-        blank=True,
+        verbose_name='биография',
+        blank=True
     )
-    confirmation_code = models.CharField(
-        'код подтверждения',
-        max_length=255,
-        null=True,
-        blank=False,
-        default='XXXX'
+    role = models.CharField(
+        max_length=20,
+        verbose_name='роль',
+        choices=UserRoles.choices(),
+        default=UserRoles.user.name
+    )
+    need_send_code = models.BooleanField(
+        default=True
     )
 
-    @property
-    def is_user(self):
-        return self.role == USER
-
-    @property
-    def is_admin(self):
-        return self.role == ADMIN
-
-    @property
-    def is_moderator(self):
-        return self.role == MODERATOR
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        ordering = ('id',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique'
+            )
+        ]
 
     def __str__(self):
         return self.username
+
+    @property
+    def is_admin(self):
+        return self.role == UserRoles.admin.name
+
+    @property
+    def is_moderator(self):
+        return self.role == UserRoles.moderator.name
+
+    @property
+    def is_user(self):
+        return self.role == UserRoles.user.name
 
 
 class Genre(models.Model):
