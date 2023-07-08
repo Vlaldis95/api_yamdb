@@ -1,6 +1,8 @@
 from django.contrib import admin
 
-from .models import Category, Comment, Genre, Review, Title, User
+from .models import (Category, Comment,
+                     Genre, Review,
+                     Title, User, TitleGenre)
 
 
 @admin.register(User)
@@ -16,7 +18,12 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'role')
 
 
+class TitleGenreInLine(admin.TabularInline):
+    model = TitleGenre
+
+
 class TitleAdmin(admin.ModelAdmin):
+    inlines = [TitleGenreInLine]
     list_display = ('pk', 'name', 'year', 'description')
     search_fields = ('name', 'year', 'description')
     list_filter = ('year',)

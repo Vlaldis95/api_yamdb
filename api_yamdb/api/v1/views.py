@@ -115,7 +115,6 @@ class UserViewSet(mixins.ListModelMixin,
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = [IsAdminUserOrReadOnly]
-    serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -128,19 +127,11 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(GetPosDeleteViewSet):
     queryset = Category.objects.all()
-    filter_backends = (SearchFilter, )
-    search_fields = ('name', )
-    lookup_field = "slug"
-    permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = CategorySerializer
 
 
 class GenreViewSet(GetPosDeleteViewSet):
     queryset = Genre.objects.all()
-    filter_backends = (SearchFilter, )
-    search_fields = ('name', )
-    lookup_field = "slug"
-    permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = GenreSerializer
 
 
