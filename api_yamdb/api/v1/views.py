@@ -1,13 +1,16 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title
+from user.models import User
 
 from .filters import TitleFilter
 from .mixins import GetPosDeleteViewSet
@@ -21,8 +24,8 @@ from .serializers import (CategorySerializer, CommentSerializer,
 from .utils import send_confirmation_code
 
 
-class UserCreateViewSet(mixins.CreateModelMixin,
-                        viewsets.GenericViewSet):
+class UserCreateViewSet(CreateModelMixin,
+                        GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
     permission_classes = (permissions.AllowAny,)
@@ -44,8 +47,8 @@ class UserCreateViewSet(mixins.CreateModelMixin,
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserGetTokenViewSet(mixins.CreateModelMixin,
-                          viewsets.GenericViewSet):
+class UserGetTokenViewSet(CreateModelMixin,
+                          GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserGetTokenSerializer
     permission_classes = (permissions.AllowAny,)
@@ -63,9 +66,9 @@ class UserGetTokenViewSet(mixins.CreateModelMixin,
         return Response(message, status=status.HTTP_200_OK)
 
 
-class UserViewSet(mixins.ListModelMixin,
-                  mixins.CreateModelMixin,
-                  viewsets.GenericViewSet):
+class UserViewSet(ListModelMixin,
+                  CreateModelMixin,
+                  GenericViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -112,7 +115,7 @@ class UserViewSet(mixins.ListModelMixin,
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = [IsAdminUserOrReadOnly]
     serializer_class = TitleSerializer
@@ -144,7 +147,7 @@ class GenreViewSet(GetPosDeleteViewSet):
     serializer_class = GenreSerializer
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = PageNumberPagination
     permission_classes = (ReviewCommentPermission,)
@@ -164,7 +167,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=author, review=review)
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
     permission_classes = (ReviewCommentPermission,)

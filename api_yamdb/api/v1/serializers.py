@@ -1,9 +1,8 @@
 from django.shortcuts import get_object_or_404
-
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
-
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title
+from user.models import User
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -15,7 +14,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        if data.get('username') == 'me':
+        if data.get('username').upper() == 'ME':
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
             )
@@ -50,7 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def validate_username(self, username):
-        if username in 'me':
+        if username.upper() in 'ME':
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
             )
