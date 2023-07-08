@@ -20,7 +20,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, GetTitleSerializer,
                           ReviewSerializer, TitleSerializer,
                           UserCreateSerializer, UserGetTokenSerializer,
-                          UserSerializer)
+                          UserSerializer, ReviewGetSerializer)
 from .utils import send_confirmation_code
 
 
@@ -153,35 +153,39 @@ class CommentViewSet(ModelViewSet):
     permission_classes = (ReviewCommentPermission,)
 
     def get_queryset(self):
-        review_id = self.kwargs.get('review_id')
-        return Comment.objects.filter(review_id=review_id)
+        return Comment.objects.filter(review_id=self.kwargs.get('review_id'))
+
+    def get_review(self):
+        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(author=self.request.user, review=self.get_review())
 
     def perform_update(self, serializer):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         comment_id = self.kwargs.get('pk')
         author = Comment.objects.get(pk=comment_id).author
-        serializer.save(author=author, review=review)
+        serializer.save(author=author, review=self.get_review())
 
 
 class ReviewViewSet(ModelViewSet):
-    serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
     permission_classes = (ReviewCommentPermission,)
 
     def get_queryset(self):
         return Review.objects.filter(title_id=self.kwargs.get('title_id'))
 
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title=self.get_title())
 
     def perform_update(self, serializer):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         review_id = self.kwargs.get('pk')
         author = Review.objects.get(pk=review_id).author
-        serializer.save(author=author, title=title)
+        serializer.save(author=author, title=self.get_title())
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return ReviewGetSerializer
+        return ReviewSerializer

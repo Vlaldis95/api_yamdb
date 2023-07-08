@@ -141,6 +141,10 @@ class ReviewSerializer(serializers.ModelSerializer):
                                           read_only=True)
     title = serializers.SlugRelatedField(slug_field='name', read_only=True)
 
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'title', "score", 'pub_date')
+
     def validate(self, data):
         title_id = (
             self.context['request'].parser_context['kwargs']['title_id']
@@ -156,6 +160,11 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return data
 
+
+class ReviewGetSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(slug_field='username',
+                                          read_only=True)
+
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'title', "score", 'pub_date')
+        fields = ('id', 'text', 'author', "score", 'pub_date')
