@@ -4,7 +4,6 @@ from api_yamdb.settings import EMAIL_YAMDB
 
 
 def send_confirmation_code(email, confirmation_code):
-    """Oтправляет на почту пользователя код подтверждения."""
     send_mail(
         subject='Код подтверждения',
         message=f'Ваш код подтверждения: {confirmation_code}',
