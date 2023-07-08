@@ -138,11 +138,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        slug_field='username', read_only=True
-    )
-    title = serializers.SlugRelatedField(
-        slug_field='name', read_only=True)
+    author = serializers.SlugRelatedField(slug_field='username',
+                                          read_only=True)
+    title = serializers.SlugRelatedField(slug_field='name', read_only=True)
 
     def validate(self, data):
         title_id = (
