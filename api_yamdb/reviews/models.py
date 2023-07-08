@@ -1,10 +1,9 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 
-
-from .validators import validate_year
 from .abstract_models import (CommonFieldsReviewCommentsAbstract,
                               SlugAndNameAbstractModel)
+from .validators import validate_year
 
 
 class Genre(SlugAndNameAbstractModel):

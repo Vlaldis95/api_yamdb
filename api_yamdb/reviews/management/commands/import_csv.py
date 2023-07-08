@@ -1,14 +1,11 @@
 import csv
-import os
 import logging
-
-from django.core.management import BaseCommand
-from reviews.models import (Category, Comment, Genre,
-                            Review, Title,
-                            TitleGenre, User)
+import os
 
 from django.conf import settings
-
+from django.core.management import BaseCommand
+from reviews.models import (Category, Comment, Genre, Review, Title,
+                            TitleGenre, User)
 
 MODELS = {
     User: 'users.csv',

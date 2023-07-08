@@ -18,9 +18,9 @@ from .permissions import (IsAdminUserOrReadOnly, IsSuperUserOrIsAdminOnly,
                           ReviewCommentPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, GetTitleSerializer,
-                          ReviewSerializer, TitleSerializer,
-                          UserCreateSerializer, UserGetTokenSerializer,
-                          UserSerializer, ReviewGetSerializer)
+                          ReviewGetSerializer, ReviewSerializer,
+                          TitleSerializer, UserCreateSerializer,
+                          UserGetTokenSerializer, UserSerializer)
 from .utils import send_confirmation_code
 
 
