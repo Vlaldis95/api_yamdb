@@ -32,11 +32,10 @@ class UserCreateViewSet(mixins.CreateModelMixin,
                                email=request.POST.get('email')).exists():
             return Response('такой пользователь уже существует',
                             status=status.HTTP_200_OK)
-        else:
-            serializer = UserCreateSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            user, _ = User.objects.get_or_create(**serializer.validated_data)
-        if request.user.is_anonymous:
+        serializer = UserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user, _ = User.objects.get_or_create(**serializer.validated_data)
+        if request.user.is_anonymous and user.need_send_code:
             confirmation_code = default_token_generator.make_token(user)
             send_confirmation_code(
                 email=user.email,
@@ -87,7 +86,7 @@ class UserViewSet(mixins.ListModelMixin,
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == 'DELETE':
+        if request.method == 'DELETE':
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         serializer = UserSerializer(user)
@@ -152,8 +151,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
-        comments = Comment.objects.filter(review_id=review_id)
-        return comments
+        return Comment.objects.filter(review_id=review_id)
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
@@ -172,8 +170,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (ReviewCommentPermission,)
 
     def get_queryset(self):
-        reviews = Review.objects.filter(title_id=self.kwargs.get('title_id'))
-        return reviews
+        return Review.objects.filter(title_id=self.kwargs.get('title_id'))
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')

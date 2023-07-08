@@ -23,26 +23,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class UserGetTokenSerializer(serializers.Serializer):
-    """Сериализатор для создания объекта класса User."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email'
-        )
-
-    def validate(self, data):
-        """Запрещает пользователям присваивать себе имя me
-        и использовать повторные username и email."""
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Использовать имя me запрещено'
-            )
-        return data
-
-
-class UserGetTokenSerializer(serializers.Serializer):
-    """Сериализатор для объекта класса User при получении токена JWT."""
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
         max_length=150,
@@ -62,7 +42,6 @@ class UserGetTokenSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели User."""
 
     class Meta:
         model = User
