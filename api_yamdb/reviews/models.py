@@ -89,6 +89,7 @@ class Review(CommonFieldsReviewCommentsAbstract):
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
+        ordering = ('id',)
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'],
@@ -108,6 +109,7 @@ class Comment(CommonFieldsReviewCommentsAbstract):
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+        ordering = ('id',)
 
     def __str__(self):
         return self.text
