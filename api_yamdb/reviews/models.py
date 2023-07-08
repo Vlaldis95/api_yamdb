@@ -1,74 +1,10 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-from .enums import UserRoles
-from .validators import validate_username, validate_year
-from .abstract_models import SlugAndNameAbstractModel
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class User(AbstractUser):
-
-    username = models.CharField(
-        max_length=150,
-        verbose_name='Имя пользователя',
-        unique=True,
-        db_index=True,
-        validators=(validate_username,)
-    )
-    email = models.EmailField(
-        max_length=254,
-        verbose_name='email',
-        unique=True
-    )
-    first_name = models.CharField(
-        max_length=150,
-        verbose_name='имя',
-        blank=True
-    )
-    last_name = models.CharField(
-        max_length=150,
-        verbose_name='фамилия',
-        blank=True
-    )
-    bio = models.TextField(
-        verbose_name='биография',
-        blank=True
-    )
-    role = models.CharField(
-        max_length=20,
-        verbose_name='роль',
-        choices=UserRoles.choices(),
-        default=UserRoles.user.name
-    )
-    need_send_code = models.BooleanField(
-        default=True
-    )
-
-    class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-        ordering = ('id',)
-        constraints = [
-            models.UniqueConstraint(
-                fields=('username', 'email'),
-                name='unique'
-            )
-        ]
-
-    def __str__(self):
-        return self.username
-
-    @property
-    def is_admin(self):
-        return self.role == UserRoles.admin.name
-
-    @property
-    def is_moderator(self):
-        return self.role == UserRoles.moderator.name
-
-    @property
-    def is_user(self):
-        return self.role == UserRoles.user.name
+from .validators import validate_year
+from .abstract_models import (CommonFieldsReviewCommentsAbstract,
+                              SlugAndNameAbstractModel)
 
 
 class Genre(SlugAndNameAbstractModel):
@@ -139,22 +75,20 @@ class TitleGenre(models.Model):
         return f'{self.title} - {self.genre}'
 
 
-class Review(models.Model):
-    SCORE_CHOICES = ((1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
-                     (6, 6), (7, 7), (8, 8), (9, 9), (10, 10))
+class Review(CommonFieldsReviewCommentsAbstract):
     title = models.ForeignKey(Title,
                               verbose_name='произведение',
                               on_delete=models.CASCADE)
-    text = models.TextField(verbose_name='текст')
-    author = models.ForeignKey(User,
-                               verbose_name='автор', on_delete=models.CASCADE)
-    score = models.IntegerField(verbose_name='оценка',
-                                choices=SCORE_CHOICES)
-    pub_date = models.DateTimeField(
-        verbose_name='дата публикации', auto_now_add=True
-    )
+    score = models.PositiveSmallIntegerField(
+        verbose_name='оценка',
+        validators=[MinValueValidator(
+            1, message='значение не должно быть меньше 1'),
+            MaxValueValidator(
+                10, message='значение не должно быть больше 10')])
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'],
@@ -166,16 +100,14 @@ class Review(models.Model):
         return self.text
 
 
-class Comment(models.Model):
-    text = models.TextField(verbose_name='текст')
-    author = models.ForeignKey(User,
-                               verbose_name='автор', on_delete=models.CASCADE)
-    pub_date = models.DateTimeField(
-        verbose_name='дата публикации', auto_now_add=True
-    )
+class Comment(CommonFieldsReviewCommentsAbstract):
     review = models.ForeignKey(Review,
                                on_delete=models.CASCADE,
                                verbose_name='отзыв')
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text
