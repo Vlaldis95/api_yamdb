@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -116,13 +116,14 @@ class TitleSerializer(serializers.ModelSerializer):
         reviews = Review.objects.filter(title_id=obj.id)
         scores = [i.score for i in reviews]
         if len(scores) == 0:
-            return 0
+            return None
         return sum(scores) / len(scores)
 
 
 class GetTitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
@@ -135,6 +136,13 @@ class GetTitleSerializer(serializers.ModelSerializer):
             'genre',
             'category',
         )
+
+    def get_rating(self, obj):
+        reviews = Review.objects.filter(title_id=obj.id)
+        scores = [i.score for i in reviews]
+        if len(scores) == 0:
+            return None
+        return sum(scores) / len(scores)
 
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsSuperUserOrIsAdminOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return (
@@ -11,7 +12,7 @@ class IsSuperUserOrIsAdminOnly(permissions.BasePermission):
 
 
 class AnonimReadOnly(permissions.BasePermission):
-     def has_permission(self, request, view):
+    def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS
 
 

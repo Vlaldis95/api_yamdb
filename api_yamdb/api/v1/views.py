@@ -1,27 +1,25 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets, mixins
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
-from .utils import send_confirmation_code
-
-from reviews.models import Category, Genre, Review, Title, User, Comment
-from .utils import send_confirmation_code
 from .filters import TitleFilter
 from .mixins import GetPosDeleteViewSet
-
-from .permissions import IsSuperUserOrIsAdminOnly, IsAdminUserOrReadOnly
-from .permissions import ReviewCommentPermission
+from .permissions import (IsAdminUserOrReadOnly, IsSuperUserOrIsAdminOnly,
+                          ReviewCommentPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          TitleSerializer, GetTitleSerializer,
+                          GenreSerializer, GetTitleSerializer,
+                          ReviewSerializer, TitleSerializer,
                           UserCreateSerializer, UserGetTokenSerializer,
                           UserSerializer)
+from .utils import send_confirmation_code
+
 
 class UserCreateViewSet(mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
@@ -30,9 +28,14 @@ class UserCreateViewSet(mixins.CreateModelMixin,
     permission_classes = (permissions.AllowAny,)
 
     def create(self, request):
-        serializer = UserCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user, _ = User.objects.get_or_create(**serializer.validated_data)
+        if User.objects.filter(username=request.POST.get('username'),
+                               email=request.POST.get('email')).exists():
+            return Response('такой пользователь уже существует',
+                            status=status.HTTP_200_OK)
+        else:
+            serializer = UserCreateSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user, _ = User.objects.get_or_create(**serializer.validated_data)
         if request.user.is_anonymous:
             confirmation_code = default_token_generator.make_token(user)
             send_confirmation_code(
@@ -175,8 +178,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
-        serializer.save(author=self.request.user, title=title)
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
     def perform_update(self, serializer):
