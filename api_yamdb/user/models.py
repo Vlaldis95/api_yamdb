@@ -73,12 +73,5 @@ class User(AbstractUser):
         return self.role == MODERATOR
 
     @property
-    def is_user(self):    # без данной проверки не проходят тесты в Pytest
+    def is_user(self):
         return self.role == USER
-
-    # Про добавление проверки на is_superuser
-    # если имелось ввиду
-    # @property
-    # def is_superuser(self):
-        # return self.role == ADMIN
-        # то тоже не проходят тесты в Pytest
