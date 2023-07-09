@@ -3,6 +3,9 @@ from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 from reviews.models import Category, Comment, Genre, Review, Title
 from user.models import User
+from .abstract_serializers import TitleAbstractSerializer
+
+MAX_LENGTH_USER_TOKEN = 150
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -24,11 +27,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class UserGetTokenSerializer(serializers.Serializer):
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
-        max_length=150,
+        max_length=MAX_LENGTH_USER_TOKEN,
         required=True
     )
     confirmation_code = serializers.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_USER_TOKEN,
         required=True
     )
 
@@ -71,58 +74,18 @@ class CategorySerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleSerializer(TitleAbstractSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
-    rating = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'rating',
-            'description',
-            'genre',
-            'category',
-        )
-
-    def get_rating(self, obj):
-        reviews = Review.objects.filter(title_id=obj.id)
-        scores = [i.score for i in reviews]
-        if len(scores) == 0:
-            return None
-        return sum(scores) / len(scores)
 
 
-class GetTitleSerializer(serializers.ModelSerializer):
+class GetTitleSerializer(TitleAbstractSerializer):
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'rating',
-            'description',
-            'genre',
-            'category',
-        )
-
-    def get_rating(self, obj):
-        reviews = Review.objects.filter(title_id=obj.id)
-        scores = [i.score for i in reviews]
-        if len(scores) == 0:
-            return None
-        return sum(scores) / len(scores)
 
 
 class CommentSerializer(serializers.ModelSerializer):

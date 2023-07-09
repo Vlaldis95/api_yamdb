@@ -5,6 +5,8 @@ from .abstract_models import (CommonFieldsReviewCommentsAbstract,
                               SlugAndNameAbstractModel)
 from .validators import validate_year
 
+MAX_LENGHT_TITLE = 256
+
 
 class Genre(SlugAndNameAbstractModel):
 
@@ -25,7 +27,7 @@ class Category(SlugAndNameAbstractModel):
 class Title(models.Model):
     name = models.CharField(
         verbose_name='Название произвидения',
-        max_length=256,
+        max_length=MAX_LENGHT_TITLE,
     )
     year = models.PositiveSmallIntegerField(
         verbose_name='Год создания',
